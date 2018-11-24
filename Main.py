@@ -1,5 +1,6 @@
 import math
 from matplotlib import pyplot as plt
+from time import time
 
 """Posicion de la Tierra en un sistema X-Y fijo con unidades de metros"""
 X1 = -4.670 * 10 ** 6
@@ -12,21 +13,22 @@ R1 = 6.731 * 10 ** 6
 R2 = 1.738 * 10 ** 6
 'Masa de la Tierra y de la Luna respectivamente'
 M1 = 5972 * 10 ** 21
-M2 = 73.48*10**21
+M2 = 0# 73.48*10**21
 'Constante universal de gravitacion'
 G = 6.674 * 10 ** (-11)
 'Distancia inicial entre la sonda y la superficie de la Tierra'
 H0 = 0.373 * 10 ** 6
 'Velocidad angular de giro del sistema Tierra-Luna alrededor de su CM'
-W = 4.236*10**(-7)
+W = 0#4.236*10**(-7)
+
 
 Vx = []
 Vy = []
 X = []
 Y = []
 H = 1
-#N = int(((2 * math.pi * (R1+H0)) / math.sqrt((G*M1)/(R1+H0))) / H)
-N = 1200000
+N = int(((2 * math.pi * (R1+H0)) / math.sqrt((G*M1)/(R1+H0))) / H)
+#N = 831600
 
 """Calcula la distancia 1 que representa la distancia desde el centro de la tierra hasta el centro de la sonda"""
 
@@ -76,8 +78,9 @@ def CalcularR():
 
 def CalcularModuloVelocidadDeOrbitaCircular():
     R = CalcularR()
-    #v0 = math.sqrt((G * M1) / R)
-    v0 = 10480.56
+    v0 = math.sqrt((G * M1) / R)
+    #v0 = 10480.56
+
     return v0
 
 
@@ -144,34 +147,78 @@ def MetodoRungeKutta2():
         Vx.append(Vx[i] + (1 / 2) * (q1vx + q2vx))
         Vy.append(Vy[i] + (1 / 2) * (q1vy + q2vy))
 
+def CalculoEnergiaCinetica(v):
+    Ec = (1 / 2) * v ** 2
+    return Ec
 
-SetearCondicionesIniciales()
-MetodoRungeKutta2()
-
-m = math.sqrt((X[0] - X[N - 1]) ** 2 + (Y[0] - Y[N - 1]) ** 2)
-print("Diferencia Distancia:", m)
-
+def CalculoEnergiaPotencial(d, M):
+    Ep = (-G * M ) / d
+    return Ep
 
 def CalculoEnergiaMecanica(i):
     v = math.sqrt(Vx[i] ** 2 + Vy[i] ** 2)
     d1 = CalculoDeDistanciaUno(X[i], Y[i])
-    Ec = (1 / 2) * v ** 2
-    Ep = -G * M1 / d1
+    d2 = CalculoDeDistanciaDos(X[i], Y[i])
+    Ec = CalculoEnergiaCinetica(v)
+    Ep1 = CalculoEnergiaPotencial(d1, M1)
+    Ep2 = CalculoEnergiaPotencial(d2, M2)
+    Ep = Ep1 + Ep2
     return Ec + Ep
 
 
+
+SetearCondicionesIniciales()
+start_time = time()
+MetodoRungeKutta2()
+
+t = []
+vector_Ep1 = []
+vector_Ep2 = []
+vector_Ec = []
+vector_Em = []
+for i in range(N):
+    v = math.sqrt(Vx[i] ** 2 + Vy[i] ** 2)
+    d1 = CalculoDeDistanciaUno(X[i], Y[i])
+    d2 = CalculoDeDistanciaDos(X[i], Y[i])
+    t.append(i)
+    vector_Ec.append(CalculoEnergiaCinetica(v))
+    vector_Ep1.append(CalculoEnergiaPotencial(d1, M1))
+    vector_Ep2.append(CalculoEnergiaPotencial(d2, M2))
+    vector_Em.append(CalculoEnergiaMecanica(i))
+
+
+elapsed_time = time() - start_time
+print("Elapsed time: %0.10f seconds." % elapsed_time)
+
+m = math.sqrt((X[0] - X[N - 1]) ** 2 + (Y[0] - Y[N - 1]) ** 2)
+print("Diferencia Distancia:", m)
+
 print("Emecanica: ", CalculoEnergiaMecanica(N - 1) - CalculoEnergiaMecanica(0))
+
+plt.plot(t, vector_Ec)
+plt.plot(t, vector_Ep1)
+plt.plot(t, vector_Ep2)
+plt.plot(t, vector_Em)
+plt.legend(["Ec", "Ep1", "Ep2", "Em"])
+plt.axhline(0, color="black")
+plt.axvline(0, color="black")
+plt.axis([0, 1200000, -6000000, 6000000])
 
 tierra = plt.Circle((X1, Y1), R1, color='blue')
 luna = plt.Circle((X2, Y2), R2, color='grey')
 
 fig, ax = plt.subplots()
-plt.axis([-100000000, 100000000, -100000000, 100000000])
+plt.axis([-50000000, 450000000, -150000000, 150000000])
+plt.xlabel("X (m)", fontsize = 20)
+plt.ylabel("Y (m)", fontsize = 20)
+plt.title("Orbita de la sonda", fontsize = 20)
 ax.add_artist(tierra)
 ax.add_artist(luna)
 
 plt.plot(X, Y)
 plt.show()
+
+
 
 
 
