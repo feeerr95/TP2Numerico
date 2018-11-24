@@ -13,13 +13,13 @@ R1 = 6.731 * 10 ** 6
 R2 = 1.738 * 10 ** 6
 'Masa de la Tierra y de la Luna respectivamente'
 M1 = 5972 * 10 ** 21
-M2 = 0# 73.48*10**21
+M2 = 73.48*10**21
 'Constante universal de gravitacion'
 G = 6.674 * 10 ** (-11)
 'Distancia inicial entre la sonda y la superficie de la Tierra'
 H0 = 0.373 * 10 ** 6
 'Velocidad angular de giro del sistema Tierra-Luna alrededor de su CM'
-W = 0#4.236*10**(-7)
+W = 4.236*10**(-7)
 
 
 Vx = []
@@ -27,8 +27,9 @@ Vy = []
 X = []
 Y = []
 H = 1
-N = int(((2 * math.pi * (R1+H0)) / math.sqrt((G*M1)/(R1+H0))) / H)
-#N = 831600
+#N = int(((2 * math.pi * (R1+H0)) / math.sqrt((G*M1)/(R1+H0))) / H)
+N = 649000
+
 
 """Calcula la distancia 1 que representa la distancia desde el centro de la tierra hasta el centro de la sonda"""
 
@@ -78,8 +79,8 @@ def CalcularR():
 
 def CalcularModuloVelocidadDeOrbitaCircular():
     R = CalcularR()
-    v0 = math.sqrt((G * M1) / R)
-    #v0 = 10480.56
+    #v0 = math.sqrt((G * M1) / R)
+    v0 = 10496.965
 
     return v0
 
@@ -176,6 +177,9 @@ vector_Ep1 = []
 vector_Ep2 = []
 vector_Ec = []
 vector_Em = []
+d2_min = 99999999999999999999999999999
+dist_reco = 0
+
 for i in range(N):
     v = math.sqrt(Vx[i] ** 2 + Vy[i] ** 2)
     d1 = CalculoDeDistanciaUno(X[i], Y[i])
@@ -185,8 +189,13 @@ for i in range(N):
     vector_Ep1.append(CalculoEnergiaPotencial(d1, M1))
     vector_Ep2.append(CalculoEnergiaPotencial(d2, M2))
     vector_Em.append(CalculoEnergiaMecanica(i))
+    dist_reco = dist_reco + v
+    if (d2 < d2_min):
+        d2_min = d2
 
 
+print("Distancia recorrida: ", dist_reco)
+print("Distancia minima a la Luna: ",d2_min)
 elapsed_time = time() - start_time
 print("Elapsed time: %0.10f seconds." % elapsed_time)
 
